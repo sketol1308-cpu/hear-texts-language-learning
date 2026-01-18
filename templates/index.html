@@ -483,39 +483,34 @@
             <div class="setting-group">
                 <h3>Word Count</h3>
                 <div class="word-count-selector">
-                    <input type="range" id="wordCountSlider" min="30" max="300" value="80" step="10">
-                    <span id="wordCountDisplay" class="word-count-display">80 words</span>
-                    <small style="color: #888; font-size: 0.8rem;">(For AI-generated texts)</small>
+                    <input type="range" id="wordCountSlider" min="30" max="300" value="100" step="10">
+                    <span id="wordCountDisplay" class="word-count-display">100 words</span>
                 </div>
-            </div>
-
-            <div class="setting-group">
-                <h3>Topic (Predefined)</h3>
-                <select id="topicSelect" class="topic-select">
-                    <option value="daily_life">Daily Life</option>
-                    <option value="travel">Travel</option>
-                    <option value="nature">Nature</option>
-                    <option value="technology">Technology</option>
-                    <option value="family">Family</option>
-                    <option value="school">School</option>
-                    <option value="hobbies">Hobbies</option>
-                    <option value="food">Food</option>
-                    <option value="shopping">Shopping</option>
-                    <option value="sports">Sports</option>
-                </select>
             </div>
 
             <div class="setting-group theme-group">
-                <h3>Custom Theme (AI - Optional)</h3>
+                <h3>Topic / Theme</h3>
+                <select id="topicSelect" class="topic-select" style="margin-bottom: 10px;">
+                    <option value="daily life">Daily Life</option>
+                    <option value="travel and vacation">Travel</option>
+                    <option value="nature and animals">Nature</option>
+                    <option value="technology and computers">Technology</option>
+                    <option value="family and home">Family</option>
+                    <option value="school and learning">School</option>
+                    <option value="hobbies and free time">Hobbies</option>
+                    <option value="food and cooking">Food</option>
+                    <option value="shopping and clothes">Shopping</option>
+                    <option value="sports and exercise">Sports</option>
+                </select>
                 <input type="text" id="themeInput" class="theme-input"
-                       placeholder="Leave empty for predefined text, or type custom theme...">
+                       placeholder="Or type your own topic here...">
                 <div class="api-key-section">
                     <input type="password" id="apiKeyInput" class="api-key-input"
-                           placeholder="Groq API Key (FREE!) - needed for custom themes">
+                           placeholder="Groq API Key (FREE!) - required">
                     <button class="btn-small" onclick="setApiKey()">Set</button>
                 </div>
                 <div id="apiStatus" class="api-status">
-                    <a href="https://console.groq.com/keys" target="_blank" style="color: #4fc3f7;">Get FREE API key for custom themes</a>
+                    <a href="https://console.groq.com/keys" target="_blank" style="color: #4fc3f7;">Get FREE API key here (required)</a>
                 </div>
             </div>
 
@@ -626,19 +621,18 @@
             const language = getSelectedValue('language');
             const level = getSelectedValue('level');
             const customTheme = document.getElementById('themeInput').value.trim();
-            const predefinedTopic = document.getElementById('topicSelect').value;
+            const selectedTopic = document.getElementById('topicSelect').value;
             const wordCount = document.getElementById('wordCountSlider').value;
 
             currentLanguage = language;
 
-            // Determine if using AI or predefined
-            const useAI = customTheme.length > 0;
-            const topic = useAI ? customTheme : predefinedTopic;
+            // Always use AI - use custom theme if provided, otherwise use dropdown topic
+            const topic = customTheme.length > 0 ? customTheme : selectedTopic;
 
             // Show loading state
             const generateBtn = document.querySelector('.btn-primary');
             const originalText = generateBtn.textContent;
-            generateBtn.textContent = useAI ? 'Generating with AI...' : 'Loading...';
+            generateBtn.textContent = 'Generating with AI...';
             generateBtn.classList.add('loading');
 
             try {
@@ -652,7 +646,7 @@
                         level: level,
                         topic: topic,
                         word_count: parseInt(wordCount),
-                        use_ai: useAI
+                        use_ai: true
                     })
                 });
 
