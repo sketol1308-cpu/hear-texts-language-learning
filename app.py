@@ -9,9 +9,10 @@ import os
 app = Flask(__name__)
 text_generator = TextGenerator()
 
-# DeepSeek API configuration
-DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+# AI API configuration (Groq - FREE!)
+AI_API_KEY = os.environ.get("GROQ_API_KEY", "")
+AI_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+AI_MODEL = "llama-3.3-70b-versatile"  # Free and fast!
 
 # Voice options for each language (teen = younger child-like voice ~12-14 years)
 VOICES = {
@@ -52,10 +53,10 @@ def index():
     return render_template('index.html')
 
 def generate_with_ai(theme, language, level, word_count):
-    """Generate text using DeepSeek AI"""
-    if not DEEPSEEK_API_KEY:
+    """Generate text using Groq AI (FREE!)"""
+    if not AI_API_KEY:
         print("No API key set")
-        return {"error": "No API key set. Please enter your DeepSeek API key."}
+        return {"error": "No API key set. Please enter your Groq API key (it's FREE!)."}
 
     level_descriptions = {
         "beginner": f"Use simple vocabulary and short sentences. About {word_count or 80} words. Use present tense mostly.",
@@ -85,12 +86,12 @@ QUESTIONS:
 
     try:
         headers = {
-            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Authorization": f"Bearer {AI_API_KEY}",
             "Content-Type": "application/json"
         }
 
         payload = {
-            "model": "deepseek-chat",
+            "model": AI_MODEL,
             "messages": [
                 {"role": "system", "content": f"You are a language learning assistant that creates educational texts in {language}."},
                 {"role": "user", "content": prompt}
@@ -99,8 +100,8 @@ QUESTIONS:
             "max_tokens": 1000
         }
 
-        print(f"Calling DeepSeek API for theme: {theme}")
-        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=60)
+        print(f"Calling Groq API for theme: {theme}")
+        response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=60)
         print(f"Response status: {response.status_code}")
 
         if response.status_code == 200:
@@ -189,7 +190,7 @@ def generate():
         if ai_result:
             if "error" in ai_result:
                 return jsonify({
-                    "text": f"Error: {ai_result['error']}\n\nPlease make sure you've set your DeepSeek API key correctly.",
+                    "text": f"Error: {ai_result['error']}\n\nGet your FREE Groq API key at: https://console.groq.com/keys",
                     "questions": ["Did you enter your API key?", "Is your API key valid?", "Try again?"]
                 })
             return jsonify(ai_result)
@@ -200,15 +201,15 @@ def generate():
 
 @app.route('/set_api_key', methods=['POST'])
 def set_api_key():
-    global DEEPSEEK_API_KEY
+    global AI_API_KEY
     data = request.json
     key = data.get('api_key', '')
-    # Don't accept masked keys
-    if key and '•' not in key and key.startswith('sk-'):
-        DEEPSEEK_API_KEY = key.strip()
+    # Accept Groq keys (gsk_) or other keys
+    if key and '•' not in key and len(key) > 20:
+        AI_API_KEY = key.strip()
         print(f"API key set: {key[:10]}...")
         return jsonify({"success": True, "has_key": True})
-    elif DEEPSEEK_API_KEY:
+    elif AI_API_KEY:
         # Key already set, don't overwrite with masked version
         return jsonify({"success": True, "has_key": True})
     return jsonify({"success": False, "has_key": False})
