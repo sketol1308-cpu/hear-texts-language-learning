@@ -541,8 +541,8 @@
 
         async function setApiKey() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
-            if (!apiKey) {
-                document.getElementById('apiStatus').textContent = 'Please enter an API key';
+            if (!apiKey || apiKey.includes('•')) {
+                document.getElementById('apiStatus').textContent = 'Please enter a valid API key (starts with sk-)';
                 document.getElementById('apiStatus').className = 'api-status disconnected';
                 return;
             }
@@ -558,9 +558,13 @@
                 hasApiKey = data.has_key;
 
                 if (hasApiKey) {
-                    document.getElementById('apiStatus').textContent = 'API key set - AI generation enabled';
+                    document.getElementById('apiStatus').textContent = 'API key set - AI generation enabled!';
                     document.getElementById('apiStatus').className = 'api-status connected';
-                    document.getElementById('apiKeyInput').value = '••••••••••••';
+                    document.getElementById('apiKeyInput').value = '';
+                    document.getElementById('apiKeyInput').placeholder = 'Key saved ✓';
+                } else {
+                    document.getElementById('apiStatus').textContent = 'Invalid API key format';
+                    document.getElementById('apiStatus').className = 'api-status disconnected';
                 }
             } catch (e) {
                 document.getElementById('apiStatus').textContent = 'Error setting API key';

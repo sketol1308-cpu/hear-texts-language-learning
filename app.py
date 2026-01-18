@@ -54,7 +54,8 @@ def index():
 def generate_with_ai(theme, language, level, word_count):
     """Generate text using DeepSeek AI"""
     if not DEEPSEEK_API_KEY:
-        return None
+        print("No API key set")
+        return {"error": "No API key set. Please enter your DeepSeek API key."}
 
     level_descriptions = {
         "beginner": f"Use simple vocabulary and short sentences. About {word_count or 80} words. Use present tense mostly.",
@@ -98,41 +99,80 @@ QUESTIONS:
             "max_tokens": 1000
         }
 
-        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=30)
+        print(f"Calling DeepSeek API for theme: {theme}")
+        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=60)
+        print(f"Response status: {response.status_code}")
 
         if response.status_code == 200:
             result = response.json()
             content = result['choices'][0]['message']['content']
+            print(f"Got content: {content[:100]}...")
 
-            # Parse the response
+            # Parse the response - try multiple formats
             text = ""
             questions = []
 
+            # Try format with TEXT: and QUESTIONS:
             if "TEXT:" in content and "QUESTIONS:" in content:
                 parts = content.split("QUESTIONS:")
                 text_part = parts[0].replace("TEXT:", "").strip()
                 questions_part = parts[1].strip()
-
                 text = text_part
+            elif "QUESTIONS:" in content:
+                # Sometimes there's no TEXT: label
+                parts = content.split("QUESTIONS:")
+                text = parts[0].strip()
+                questions_part = parts[1].strip()
+            else:
+                # Try to split by numbered questions
+                lines = content.split("\n")
+                text_lines = []
+                questions_part = ""
+                in_questions = False
+                for line in lines:
+                    if re.match(r'^\d+[\.\)]', line.strip()):
+                        in_questions = True
+                    if in_questions:
+                        questions_part += line + "\n"
+                    else:
+                        text_lines.append(line)
+                text = "\n".join(text_lines).strip()
 
-                # Extract questions
+            # Extract questions
+            if questions_part:
                 lines = questions_part.split("\n")
                 for line in lines:
                     line = line.strip()
-                    if line and (line[0].isdigit() or line.startswith("-")):
+                    if line and len(line) > 5:
                         # Remove numbering
                         q = re.sub(r'^[\d]+[\.\)]\s*', '', line)
                         q = q.lstrip('- ')
-                        if q:
+                        if q and '?' in q:
                             questions.append(q)
 
-            if text and len(questions) >= 3:
+            if text and len(questions) >= 1:
+                print(f"Successfully parsed: {len(text)} chars, {len(questions)} questions")
                 return {"text": text, "questions": questions[:5]}
+            else:
+                print(f"Parse failed: text={len(text)}, questions={len(questions)}")
+                # Return raw content as fallback
+                return {
+                    "text": content,
+                    "questions": ["What is the main topic of this text?",
+                                  "Can you summarize the key points?",
+                                  "What did you learn from this text?"]
+                }
+        else:
+            error_msg = response.text
+            print(f"API error: {response.status_code} - {error_msg}")
+            return {"error": f"API error: {response.status_code}"}
 
-        return None
+    except requests.exceptions.Timeout:
+        print("API timeout")
+        return {"error": "Request timed out. Please try again."}
     except Exception as e:
         print(f"DeepSeek API error: {e}")
-        return None
+        return {"error": str(e)}
 
 @app.route('/generate', methods=['POST'])
 def generate():
@@ -144,9 +184,14 @@ def generate():
     use_ai = data.get('use_ai', False)
 
     # Try AI generation if custom theme is provided
-    if use_ai and topic and DEEPSEEK_API_KEY:
+    if use_ai and topic:
         ai_result = generate_with_ai(topic, language, level, word_count)
         if ai_result:
+            if "error" in ai_result:
+                return jsonify({
+                    "text": f"Error: {ai_result['error']}\n\nPlease make sure you've set your DeepSeek API key correctly.",
+                    "questions": ["Did you enter your API key?", "Is your API key valid?", "Try again?"]
+                })
             return jsonify(ai_result)
 
     # Fallback to predefined texts
@@ -157,8 +202,16 @@ def generate():
 def set_api_key():
     global DEEPSEEK_API_KEY
     data = request.json
-    DEEPSEEK_API_KEY = data.get('api_key', '')
-    return jsonify({"success": True, "has_key": bool(DEEPSEEK_API_KEY)})
+    key = data.get('api_key', '')
+    # Don't accept masked keys
+    if key and '•' not in key and key.startswith('sk-'):
+        DEEPSEEK_API_KEY = key.strip()
+        print(f"API key set: {key[:10]}...")
+        return jsonify({"success": True, "has_key": True})
+    elif DEEPSEEK_API_KEY:
+        # Key already set, don't overwrite with masked version
+        return jsonify({"success": True, "has_key": True})
+    return jsonify({"success": False, "has_key": False})
 
 @app.route('/speak', methods=['POST'])
 def speak():
