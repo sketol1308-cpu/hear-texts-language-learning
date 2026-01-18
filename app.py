@@ -65,11 +65,13 @@ def generate_with_ai(theme, language, level, word_count):
     }
 
     target_words = word_count or 100
+    # Ask for more words so we can trim to exact count
+    request_words = int(target_words * 1.5)
 
     prompt = f"""Generate a {level} level text in {language} about the topic: "{theme}"
 
-CRITICAL REQUIREMENTS:
-- The text MUST be EXACTLY {target_words} words. Count carefully! Not less, not more.
+REQUIREMENTS:
+- Write approximately {request_words} words
 - {level_styles.get(level, level_styles['beginner'])}
 - Make it interesting and educational
 - The text should be a coherent story or description
@@ -78,7 +80,7 @@ After the text, provide exactly 5 comprehension questions about the text in {lan
 
 Format your response exactly like this:
 TEXT:
-[Your generated text here - MUST BE EXACTLY {target_words} WORDS]
+[Your generated text here]
 
 QUESTIONS:
 1. [First question]
@@ -155,7 +157,22 @@ QUESTIONS:
                             questions.append(q)
 
             if text and len(questions) >= 1:
-                print(f"Success: {len(text)} chars, {len(questions)} questions")
+                # Trim text to exact word count
+                words = text.split()
+                if len(words) > target_words:
+                    # Find the last sentence ending within word limit
+                    trimmed_words = words[:target_words]
+                    trimmed_text = ' '.join(trimmed_words)
+                    # Try to end at a sentence
+                    last_period = trimmed_text.rfind('.')
+                    last_exclaim = trimmed_text.rfind('!')
+                    last_question = trimmed_text.rfind('?')
+                    last_end = max(last_period, last_exclaim, last_question)
+                    if last_end > len(trimmed_text) * 0.7:  # Only trim if we keep 70%+
+                        text = trimmed_text[:last_end + 1]
+                    else:
+                        text = trimmed_text + '.'
+                print(f"Success: {len(text.split())} words, {len(questions)} questions")
                 return {"text": text, "questions": questions[:5]}
             else:
                 print(f"Parse issue, returning raw content")
