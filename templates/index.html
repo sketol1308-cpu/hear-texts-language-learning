@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hear Texts - Language Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4fc3f7;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px rgba(79, 195, 247, 0.3);
+        }
+
+        .settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .setting-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .setting-group h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .radio-group label:hover {
+            color: #4fc3f7;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 10px;
+            accent-color: #4fc3f7;
+            width: 18px;
+            height: 18px;
+        }
+
+        .custom-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .custom-input input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .custom-input input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+
+        .topic-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .topic-select:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+
+        .topic-select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .topic-select optgroup {
+            background: #16213e;
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+
+        .theme-group {
+            grid-column: span 2;
+        }
+
+        .theme-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .theme-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .theme-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .api-key-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .api-key-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            background: #4fc3f7;
+            color: #1a1a2e;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-small:hover {
+            background: #29b6f6;
+        }
+
+        .api-status {
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .api-status.connected {
+            color: #81c784;
+        }
+
+        .api-status.disconnected {
+            color: #ef5350;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading-text::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(79, 195, 247, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef5350, #e53935);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(239, 83, 80, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #66bb6a, #43a047);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 187, 106, 0.4);
+        }
+
+        .text-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .text-box h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .text-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #e0e0e0;
+            white-space: pre-wrap;
+        }
+
+        .questions-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .questions-box h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+        }
+
+        .question-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .question-text {
+            color: #e0e0e0;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+
+        .question-number {
+            color: #4fc3f7;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feedback {
+            margin-top: 10px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .feedback.correct {
+            background: rgba(102, 187, 106, 0.2);
+            border: 1px solid rgba(102, 187, 106, 0.5);
+            color: #81c784;
+        }
+
+        .feedback.wrong {
+            background: rgba(239, 83, 80, 0.2);
+            border: 1px solid rgba(239, 83, 80, 0.5);
+            color: #ef5350;
+        }
+
+        .feedback.info {
+            background: rgba(79, 195, 247, 0.2);
+            border: 1px solid rgba(79, 195, 247, 0.5);
+            color: #4fc3f7;
+        }
+
+        .feedback .hint {
+            margin-top: 8px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .speaking-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .speed-control input[type="range"] {
+            width: 100px;
+            accent-color: #4fc3f7;
+        }
+
+        .placeholder-text {
+            color: #888;
+            font-style: italic;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .check-btn-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .settings {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hear Texts - Language Learning</h1>
+
+        <div class="settings">
+            <div class="setting-group">
+                <h3>Language</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="language" value="English" checked> English</label>
+                    <label><input type="radio" name="language" value="French"> French</label>
+                    <label><input type="radio" name="language" value="German"> German</label>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Level</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="level" value="beginner" checked> Beginner</label>
+                    <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
+                    <label><input type="radio" name="level" value="advanced"> Advanced</label>
+                </div>
+                <div class="custom-input">
+                    <span>Words:</span>
+                    <input type="number" id="wordCount" placeholder="100" min="20" max="500">
+                </div>
+            </div>
+
+            <div class="setting-group theme-group">
+                <h3>Theme (AI Generated)</h3>
+                <input type="text" id="themeInput" class="theme-input"
+                       placeholder="e.g. my favorite pet, going to the beach...">
+                <div class="api-key-section">
+                    <input type="password" id="apiKeyInput" class="api-key-input"
+                           placeholder="DeepSeek API Key">
+                    <button class="btn-small" onclick="setApiKey()">Set</button>
+                </div>
+                <div id="apiStatus" class="api-status"></div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Voice Type</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="voice" value="female" checked> Female</label>
+                    <label><input type="radio" name="voice" value="male"> Male</label>
+                    <label><input type="radio" name="voice" value="teen"> Teen (~14 yrs)</label>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Speed</h3>
+                <div class="speed-control">
+                    <input type="range" id="speechRate" min="0.5" max="1.5" step="0.1" value="1.0">
+                    <span id="speedValue">1.0x</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-primary" onclick="generateText()">Generate New Text</button>
+            <button class="btn-secondary" onclick="speakText()">
+                Listen to Text
+                <span id="speakingIndicator" class="speaking-indicator hidden"></span>
+            </button>
+            <button class="btn-danger" onclick="stopSpeaking()">Stop</button>
+        </div>
+
+        <div class="text-box">
+            <h3>Text</h3>
+            <div class="text-content" id="textContent">
+                <p class="placeholder-text">Click "Generate New Text" to start learning!</p>
+            </div>
+        </div>
+
+        <div class="questions-box">
+            <h3>Comprehension Questions</h3>
+            <div id="questionsContent">
+                <p class="placeholder-text">Questions will appear here after you generate a text.</p>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" style="display:none;"></audio>
+
+    <script>
+        let currentText = '';
+        let currentQuestions = [];
+        let currentLanguage = 'English';
+        let isSpeaking = false;
+        let audioPlayer = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            audioPlayer = document.getElementById('audioPlayer');
+        });
+
+        document.getElementById('speechRate').addEventListener('input', function() {
+            document.getElementById('speedValue').textContent = this.value + 'x';
+        });
+
+        function getSelectedValue(name) {
+            const selected = document.querySelector(`input[name="${name}"]:checked`);
+            return selected ? selected.value : null;
+        }
+
+        let hasApiKey = false;
+
+        async function setApiKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                document.getElementById('apiStatus').textContent = 'Please enter an API key';
+                document.getElementById('apiStatus').className = 'api-status disconnected';
+                return;
+            }
+
+            try {
+                const response = await fetch('/set_api_key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: apiKey })
+                });
+
+                const data = await response.json();
+                hasApiKey = data.has_key;
+
+                if (hasApiKey) {
+                    document.getElementById('apiStatus').textContent = 'API key set - AI generation enabled';
+                    document.getElementById('apiStatus').className = 'api-status connected';
+                    document.getElementById('apiKeyInput').value = '••••••••••••';
+                }
+            } catch (e) {
+                document.getElementById('apiStatus').textContent = 'Error setting API key';
+                document.getElementById('apiStatus').className = 'api-status disconnected';
+            }
+        }
+
+        async function generateText() {
+            const language = getSelectedValue('language');
+            const level = getSelectedValue('level');
+            const theme = document.getElementById('themeInput').value.trim();
+            const customWordCount = document.getElementById('wordCount').value;
+
+            currentLanguage = language;
+
+            if (!theme) {
+                alert('Please enter a theme for the text!');
+                return;
+            }
+
+            // Show loading state
+            const generateBtn = document.querySelector('.btn-primary');
+            const originalText = generateBtn.textContent;
+            generateBtn.textContent = 'Generating with AI...';
+            generateBtn.classList.add('loading');
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        language: language,
+                        level: level,
+                        topic: theme,
+                        word_count: customWordCount ? parseInt(customWordCount) : null,
+                        use_ai: true
+                    })
+                });
+
+                const data = await response.json();
+                currentText = data.text;
+                currentQuestions = data.questions;
+
+                document.getElementById('textContent').innerHTML = `<p>${currentText}</p>`;
+
+                // Show questions with answer inputs
+                showQuestionsWithInputs();
+            } catch (e) {
+                console.log('Generation error:', e);
+                alert('Error generating text. Please try again.');
+            } finally {
+                generateBtn.textContent = originalText;
+                generateBtn.classList.remove('loading');
+            }
+        }
+
+        function showQuestionsWithInputs() {
+            if (currentQuestions.length === 0) {
+                document.getElementById('questionsContent').innerHTML =
+                    '<p class="placeholder-text">No questions available.</p>';
+                return;
+            }
+
+            let html = '';
+            currentQuestions.forEach((q, i) => {
+                html += `
+                    <div class="question-item">
+                        <div class="question-text">
+                            <span class="question-number">${i + 1}.</span>${q}
+                        </div>
+                        <input type="text" class="answer-input" id="answer-${i}"
+                               placeholder="Type your answer here...">
+                        <div class="feedback hidden" id="feedback-${i}"></div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="check-btn-container">
+                    <button class="btn-success" onclick="checkAnswers()">Check My Answers</button>
+                    <button class="btn-secondary" onclick="showCorrectAnswers()" style="margin-left: 10px;">Show Hints</button>
+                </div>
+            `;
+
+            document.getElementById('questionsContent').innerHTML = html;
+        }
+
+        async function checkAnswers() {
+            const answers = [];
+            currentQuestions.forEach((q, i) => {
+                const input = document.getElementById(`answer-${i}`);
+                answers.push(input ? input.value : '');
+            });
+
+            try {
+                const response = await fetch('/check_answers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        answers: answers,
+                        questions: currentQuestions,
+                        text: currentText
+                    })
+                });
+
+                const data = await response.json();
+
+                data.results.forEach((result, i) => {
+                    const feedbackEl = document.getElementById(`feedback-${i}`);
+                    const inputEl = document.getElementById(`answer-${i}`);
+
+                    let html = `<strong>${result.correct ? '✓ Correct!' : '✗ Incorrect'}</strong> ${result.feedback}`;
+                    if (result.hint) {
+                        html += `<div class="hint">${result.hint}</div>`;
+                    }
+
+                    feedbackEl.innerHTML = html;
+                    feedbackEl.className = `feedback ${result.correct ? 'correct' : 'wrong'}`;
+                    feedbackEl.classList.remove('hidden');
+
+                    // Highlight input border
+                    if (inputEl) {
+                        inputEl.style.borderColor = result.correct ? '#81c784' : '#ef5350';
+                    }
+                });
+            } catch (e) {
+                console.log('Error checking answers:', e);
+            }
+        }
+
+        function showCorrectAnswers() {
+            // Show hints based on the text
+            currentQuestions.forEach((q, i) => {
+                const feedbackEl = document.getElementById(`feedback-${i}`);
+                feedbackEl.innerHTML = `<strong>Hint:</strong> Read the text carefully and look for keywords related to: "${q.split(' ').slice(0, 5).join(' ')}..."`;
+                feedbackEl.className = 'feedback info';
+                feedbackEl.classList.remove('hidden');
+            });
+        }
+
+        async function speakText() {
+            if (!currentText) {
+                alert('Please generate a text first!');
+                return;
+            }
+
+            stopSpeaking();
+
+            document.getElementById('speakingIndicator').classList.remove('hidden');
+            isSpeaking = true;
+
+            const langCode = {
+                'English': 'en',
+                'French': 'fr',
+                'German': 'de'
+            }[currentLanguage] || 'en';
+
+            const voiceType = getSelectedValue('voice');
+
+            try {
+                const response = await fetch('/speak', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: currentText,
+                        language: langCode,
+                        voice_type: voiceType
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+
+                    audioPlayer.src = url;
+                    audioPlayer.playbackRate = parseFloat(document.getElementById('speechRate').value);
+
+                    audioPlayer.onended = () => {
+                        isSpeaking = false;
+                        document.getElementById('speakingIndicator').classList.add('hidden');
+                        URL.revokeObjectURL(url);
+                    };
+
+                    audioPlayer.onerror = (e) => {
+                        console.log('Audio error:', e);
+                        isSpeaking = false;
+                        document.getElementById('speakingIndicator').classList.add('hidden');
+                    };
+
+                    await audioPlayer.play();
+                }
+            } catch (e) {
+                console.log('TTS error:', e);
+                isSpeaking = false;
+                document.getElementById('speakingIndicator').classList.add('hidden');
+            }
+        }
+
+        function stopSpeaking() {
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }
+            isSpeaking = false;
+            document.getElementById('speakingIndicator').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
