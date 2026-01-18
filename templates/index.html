@@ -480,14 +480,6 @@
                 </div>
             </div>
 
-            <div class="setting-group">
-                <h3>Word Count</h3>
-                <div class="word-count-selector">
-                    <input type="range" id="wordCountSlider" min="30" max="300" value="100" step="10">
-                    <span id="wordCountDisplay" class="word-count-display">100 words</span>
-                </div>
-            </div>
-
             <div class="setting-group theme-group">
                 <h3>Topic / Theme</h3>
                 <select id="topicSelect" class="topic-select" style="margin-bottom: 10px;">
@@ -516,11 +508,28 @@
 
             <div class="setting-group">
                 <h3>Voice Type</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="voice" value="female" checked> Female</label>
-                    <label><input type="radio" name="voice" value="male"> Male</label>
-                    <label><input type="radio" name="voice" value="teen"> Teen (~14 yrs)</label>
-                </div>
+                <select id="voiceSelect" class="topic-select">
+                    <optgroup label="Standard">
+                        <option value="female">Female (US)</option>
+                        <option value="male">Male (US)</option>
+                        <option value="teen">Teen (~14 yrs)</option>
+                    </optgroup>
+                    <optgroup label="English Accents">
+                        <option value="british_female">British Female</option>
+                        <option value="british_male">British Male</option>
+                        <option value="australian">Australian</option>
+                        <option value="indian">Indian</option>
+                        <option value="cheerful">Cheerful (Aria)</option>
+                    </optgroup>
+                    <optgroup label="French Accents">
+                        <option value="canadian">Canadian French</option>
+                        <option value="belgian">Belgian French</option>
+                    </optgroup>
+                    <optgroup label="German Accents">
+                        <option value="austrian">Austrian</option>
+                        <option value="swiss">Swiss German</option>
+                    </optgroup>
+                </select>
             </div>
 
             <div class="setting-group">
@@ -573,10 +582,6 @@
             document.getElementById('speedValue').textContent = this.value + 'x';
         });
 
-        document.getElementById('wordCountSlider').addEventListener('input', function() {
-            document.getElementById('wordCountDisplay').textContent = this.value + ' words';
-        });
-
         function getSelectedValue(name) {
             const selected = document.querySelector(`input[name="${name}"]:checked`);
             return selected ? selected.value : null;
@@ -622,7 +627,6 @@
             const level = getSelectedValue('level');
             const customTheme = document.getElementById('themeInput').value.trim();
             const selectedTopic = document.getElementById('topicSelect').value;
-            const wordCount = document.getElementById('wordCountSlider').value;
 
             currentLanguage = language;
 
@@ -645,7 +649,6 @@
                         language: language,
                         level: level,
                         topic: topic,
-                        word_count: parseInt(wordCount),
                         use_ai: true
                     })
                 });
@@ -768,7 +771,7 @@
                 'German': 'de'
             }[currentLanguage] || 'en';
 
-            const voiceType = getSelectedValue('voice');
+            const voiceType = document.getElementById('voiceSelect').value;
 
             try {
                 const response = await fetch('/speak', {

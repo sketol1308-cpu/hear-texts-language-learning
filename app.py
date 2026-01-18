@@ -14,22 +14,31 @@ AI_API_KEY = os.environ.get("GROQ_API_KEY", "")
 AI_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 AI_MODEL = "llama-3.3-70b-versatile"  # Free and fast!
 
-# Voice options for each language (teen = younger child-like voice ~12-14 years)
+# Voice options for each language
 VOICES = {
     "en": {
         "female": "en-US-JennyNeural",
         "male": "en-US-GuyNeural",
-        "teen": "en-US-AnaNeural"  # Child voice, sounds young
+        "teen": "en-US-AnaNeural",
+        "british_female": "en-GB-SoniaNeural",
+        "british_male": "en-GB-RyanNeural",
+        "australian": "en-AU-NatashaNeural",
+        "indian": "en-IN-NeerjaNeural",
+        "cheerful": "en-US-AriaNeural"
     },
     "fr": {
         "female": "fr-FR-DeniseNeural",
         "male": "fr-FR-HenriNeural",
-        "teen": "fr-FR-EloiseNeural"  # Child voice
+        "teen": "fr-FR-EloiseNeural",
+        "canadian": "fr-CA-SylvieNeural",
+        "belgian": "fr-BE-CharlineNeural"
     },
     "de": {
         "female": "de-DE-KatjaNeural",
         "male": "de-DE-ConradNeural",
-        "teen": "de-DE-GiselaNeural"  # Child voice
+        "teen": "de-DE-GiselaNeural",
+        "austrian": "de-AT-IngridNeural",
+        "swiss": "de-CH-LeniNeural"
     }
 }
 
@@ -64,14 +73,18 @@ def generate_with_ai(theme, language, level, word_count):
         "advanced": "Use sophisticated vocabulary and complex sentences. Use all tenses and idioms."
     }
 
-    target_words = word_count or 100
-    # Ask for 20 more words so we can trim to exact count
-    request_words = target_words + 20
+    # Word count based on level
+    level_word_counts = {
+        "beginner": 80,
+        "intermediate": 150,
+        "advanced": 250
+    }
+    target_words = word_count or level_word_counts.get(level, 100)
 
     prompt = f"""Generate a {level} level text in {language} about the topic: "{theme}"
 
 REQUIREMENTS:
-- Write approximately {request_words} words
+- Write approximately {target_words} words
 - {level_styles.get(level, level_styles['beginner'])}
 - Make it interesting and educational
 - The text should be a coherent story or description
@@ -157,21 +170,6 @@ QUESTIONS:
                             questions.append(q)
 
             if text and len(questions) >= 1:
-                # Trim text to exact word count
-                words = text.split()
-                if len(words) > target_words:
-                    # Find the last sentence ending within word limit
-                    trimmed_words = words[:target_words]
-                    trimmed_text = ' '.join(trimmed_words)
-                    # Try to end at a sentence
-                    last_period = trimmed_text.rfind('.')
-                    last_exclaim = trimmed_text.rfind('!')
-                    last_question = trimmed_text.rfind('?')
-                    last_end = max(last_period, last_exclaim, last_question)
-                    if last_end > len(trimmed_text) * 0.7:  # Only trim if we keep 70%+
-                        text = trimmed_text[:last_end + 1]
-                    else:
-                        text = trimmed_text + '.'
                 print(f"Success: {len(text.split())} words, {len(questions)} questions")
                 return {"text": text, "questions": questions[:5]}
             else:
