@@ -58,16 +58,19 @@ def generate_with_ai(theme, language, level, word_count):
         print("No API key set")
         return {"error": "No API key set. Please enter your Groq API key (it's FREE!)."}
 
-    level_descriptions = {
-        "beginner": f"Use simple vocabulary and short sentences. About {word_count or 80} words. Use present tense mostly.",
-        "intermediate": f"Use varied vocabulary and compound sentences. About {word_count or 150} words. Mix different tenses.",
-        "advanced": f"Use sophisticated vocabulary and complex sentences. About {word_count or 250} words. Use all tenses and idioms."
+    level_styles = {
+        "beginner": "Use simple vocabulary and short sentences. Use present tense mostly.",
+        "intermediate": "Use varied vocabulary and compound sentences. Mix different tenses.",
+        "advanced": "Use sophisticated vocabulary and complex sentences. Use all tenses and idioms."
     }
+
+    target_words = word_count or 100
 
     prompt = f"""Generate a {level} level text in {language} about the topic: "{theme}"
 
-Requirements:
-- {level_descriptions.get(level, level_descriptions['beginner'])}
+CRITICAL REQUIREMENTS:
+- The text MUST be EXACTLY {target_words} words. Count carefully! Not less, not more.
+- {level_styles.get(level, level_styles['beginner'])}
 - Make it interesting and educational
 - The text should be a coherent story or description
 
@@ -75,7 +78,7 @@ After the text, provide exactly 5 comprehension questions about the text in {lan
 
 Format your response exactly like this:
 TEXT:
-[Your generated text here]
+[Your generated text here - MUST BE EXACTLY {target_words} WORDS]
 
 QUESTIONS:
 1. [First question]
