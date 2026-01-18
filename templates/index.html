@@ -485,20 +485,37 @@
                 <div class="word-count-selector">
                     <input type="range" id="wordCountSlider" min="30" max="300" value="80" step="10">
                     <span id="wordCountDisplay" class="word-count-display">80 words</span>
+                    <small style="color: #888; font-size: 0.8rem;">(For AI-generated texts)</small>
                 </div>
             </div>
 
+            <div class="setting-group">
+                <h3>Topic (Predefined)</h3>
+                <select id="topicSelect" class="topic-select">
+                    <option value="daily_life">Daily Life</option>
+                    <option value="travel">Travel</option>
+                    <option value="nature">Nature</option>
+                    <option value="technology">Technology</option>
+                    <option value="family">Family</option>
+                    <option value="school">School</option>
+                    <option value="hobbies">Hobbies</option>
+                    <option value="food">Food</option>
+                    <option value="shopping">Shopping</option>
+                    <option value="sports">Sports</option>
+                </select>
+            </div>
+
             <div class="setting-group theme-group">
-                <h3>Theme (AI Generated - FREE!)</h3>
+                <h3>Custom Theme (AI - Optional)</h3>
                 <input type="text" id="themeInput" class="theme-input"
-                       placeholder="e.g. my favorite pet, going to the beach...">
+                       placeholder="Leave empty for predefined text, or type custom theme...">
                 <div class="api-key-section">
                     <input type="password" id="apiKeyInput" class="api-key-input"
-                           placeholder="Groq API Key (FREE!)">
+                           placeholder="Groq API Key (FREE!) - needed for custom themes">
                     <button class="btn-small" onclick="setApiKey()">Set</button>
                 </div>
                 <div id="apiStatus" class="api-status">
-                    <a href="https://console.groq.com/keys" target="_blank" style="color: #4fc3f7;">Get FREE API key here</a>
+                    <a href="https://console.groq.com/keys" target="_blank" style="color: #4fc3f7;">Get FREE API key for custom themes</a>
                 </div>
             </div>
 
@@ -608,20 +625,20 @@
         async function generateText() {
             const language = getSelectedValue('language');
             const level = getSelectedValue('level');
-            const theme = document.getElementById('themeInput').value.trim();
+            const customTheme = document.getElementById('themeInput').value.trim();
+            const predefinedTopic = document.getElementById('topicSelect').value;
             const wordCount = document.getElementById('wordCountSlider').value;
 
             currentLanguage = language;
 
-            if (!theme) {
-                alert('Please enter a theme for the text!');
-                return;
-            }
+            // Determine if using AI or predefined
+            const useAI = customTheme.length > 0;
+            const topic = useAI ? customTheme : predefinedTopic;
 
             // Show loading state
             const generateBtn = document.querySelector('.btn-primary');
             const originalText = generateBtn.textContent;
-            generateBtn.textContent = 'Generating with AI...';
+            generateBtn.textContent = useAI ? 'Generating with AI...' : 'Loading...';
             generateBtn.classList.add('loading');
 
             try {
@@ -633,9 +650,9 @@
                     body: JSON.stringify({
                         language: language,
                         level: level,
-                        topic: theme,
+                        topic: topic,
                         word_count: parseInt(wordCount),
-                        use_ai: true
+                        use_ai: useAI
                     })
                 });
 
