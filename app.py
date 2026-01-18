@@ -65,8 +65,8 @@ def generate_with_ai(theme, language, level, word_count):
     }
 
     target_words = word_count or 100
-    # Ask for more words so we can trim to exact count
-    request_words = int(target_words * 1.5)
+    # Ask for 20 more words so we can trim to exact count
+    request_words = target_words + 20
 
     prompt = f"""Generate a {level} level text in {language} about the topic: "{theme}"
 
