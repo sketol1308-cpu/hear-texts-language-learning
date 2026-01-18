@@ -100,14 +100,14 @@ QUESTIONS:
             "max_tokens": 1000
         }
 
-        print(f"Calling Groq API for theme: {theme}")
+        print(f"Calling Groq API...")
         response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=60)
         print(f"Response status: {response.status_code}")
 
         if response.status_code == 200:
             result = response.json()
             content = result['choices'][0]['message']['content']
-            print(f"Got content: {content[:100]}...")
+            print(f"Got content, length: {len(content)}")
 
             # Parse the response - try multiple formats
             text = ""
@@ -152,10 +152,10 @@ QUESTIONS:
                             questions.append(q)
 
             if text and len(questions) >= 1:
-                print(f"Successfully parsed: {len(text)} chars, {len(questions)} questions")
+                print(f"Success: {len(text)} chars, {len(questions)} questions")
                 return {"text": text, "questions": questions[:5]}
             else:
-                print(f"Parse failed: text={len(text)}, questions={len(questions)}")
+                print(f"Parse issue, returning raw content")
                 # Return raw content as fallback
                 return {
                     "text": content,
